@@ -31,10 +31,6 @@ For Production
 
 while getopts ":h:v:e:t" o; do
     case "${o}" in
-        h)
-            usage
-            exit 0
-            ;;
         v)
             VERSION=${OPTARG}
             ;;
@@ -44,9 +40,12 @@ while getopts ":h:v:e:t" o; do
         t)
             TOKEN=${OPTARG}
             ;;
-        *)
+        h)
             usage
             exit 0
+            ;;
+        *)
+            usage
             ;;
     esac
 done

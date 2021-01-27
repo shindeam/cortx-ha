@@ -28,18 +28,17 @@ usage() {
 """
 }
 
-while getopts ":h:v" o; do
+while getopts ":v:h" o; do
     case "${o}" in
+        v)
+            VERSION=${OPTARG}
+            ;;
         h)
             usage
             exit 0
             ;;
-        v)
-            VERSION=${OPTARG}
-            ;;
         *)
             usage
-            exit 0
             ;;
     esac
 done
