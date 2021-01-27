@@ -33,6 +33,7 @@ while getopts ":h:v:e:t" o; do
     case "${o}" in
         h)
             usage
+            exit 0
             ;;
         v)
             VERSION=${OPTARG}
@@ -45,6 +46,7 @@ while getopts ":h:v:e:t" o; do
             ;;
         *)
             usage
+            exit 0
             ;;
     esac
 done
