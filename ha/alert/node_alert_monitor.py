@@ -33,39 +33,33 @@ class NodeAlertMonitor(AlertMonitor):
         Log.debug("Processing event for NodeAlertMonitor")
         # Environment variable are avilable in self.crm_env
         self.iem = IemGenerator()
-        alert_dup = AlertDuplication()
-        self.node_ids, self.local_node = alert_dup.AlertDuplication().get_status()
+        self.alert_dup = HandleAlertDuplication()
+        self.nodes_ids, self.local_node = self.alert_dup.get_node_id()
 
-        if self.node_ids[-1] == self.local_node:
+        # Generate and send IEM only through the highest online node in cluster.
+        if self.nodes_ids[-1] == self.local_node:
             self.iem.generate_iem(self.crm_env["CRM_alert_node"], self.alert_event_module, self.alert_event_type)
             Log.info(f"Sent IEM alert from local node: {self.local_node}")
         else:
-            Log.info(f"Not the highest node to sent IEM node failure alert.")
+            Log.info("Not the highest node to sent IEM node failure alert.")
 
-class AlertDuplication:
+class HandleAlertDuplication:
     """
-    Alert duplication.
+    Handle node alert duplication.
     """
     def __init__(self):
         """
         Init method.
         """
         self.process = SimpleCommand()
-    
-    def get_status(self):
-        self._nodeids, self._err, self._rc = self.process.run_cmd("pcs status corosync | awk '{print $1}' | tail -n+5")
-        self._local_node, self._err, self._rc = self.process.run_cmd("crm_node -i")
-        Log.info(f"List of online node ids in cluster: {self._nodeids.split()}")
-        Log.info(f"Local node id: {self._local_node}")
-        self.nodeids_list = self._nodeids.split() 
-        self.sort_nodeids(self.nodeids_list, self._local_node)
 
-    def sort_nodeids(self, nodeids_list: list, local_node):
+    def get_node_id(self):
         """
-        Sort node ids in ascending order.
+        Get list of online nodes ids and local node id.
         """
-        self.nodeids_list = nodeids_list
-        self.local_node = local_node
-        self.nodeids_list.sort()
-        Log.info(f"Sorted node ids: {self.nodeids_list}")
-        return self.nodeids_list.sort(), self.local_node
+        self._nodes_ids, self._err, self._rc = self.process.run_cmd("pcs status corosync | awk '{print $1}' | tail -n+5")
+        self._local_node, self._err, self._rc = self.process.run_cmd("crm_node -i")
+        self.nodes_ids_list = self._nodes_ids.split()
+        Log.info(f"List of online nodes ids in cluster in sorted ascending order: {self.nodes_ids_list.sort()}")
+        Log.info(f"Local node id: {self._local_node}")
+        return self.nodes_ids_list.sort(), self._local_node
